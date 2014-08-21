@@ -12,3 +12,17 @@ foo(X) -> -X.
 % @doc barrista
 %
 bar() -> ok.
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+foo_test() ->
+    ?assertEqual(-4, foo(4)),
+    ?assertEqual(-5, foo(5)),
+    ?assertEqual(4, foo(-4)),
+    ?assertEqual(0, foo(0)).
+
+bar_test() ->
+    ?assertEqual(ok, bar()).
+
+-endif.
