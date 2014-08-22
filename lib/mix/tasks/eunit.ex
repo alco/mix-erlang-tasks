@@ -26,12 +26,7 @@ defmodule Mix.Tasks.Eunit do
     # This is run independently, so that the test modules don't end up in the
     # .app file
     ebin_test = Path.join([Mix.Project.app_path, "test_beams"])
-    File.mkdir_p!(ebin_test)
-    for path <- Path.wildcard("etest/**/*_tests.erl") do
-      :compile.file(String.to_char_list(path), [{:outdir, String.to_char_list(ebin_test)}])
-      IO.puts "Compiled #{path}"
-    end
-    Code.prepend_path(ebin_test)
+    MixErlangTasks.Util.compile_files(Path.wildcard("etest/**/*_tests.erl"), ebin_test)
 
     options = if Keyword.get(opts, :verbose, false), do: [:verbose], else: []
     :eunit.test {:application, Mix.Project.config[:app]}, options
