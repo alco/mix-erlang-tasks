@@ -3,15 +3,19 @@ defmodule Mix.Tasks.Eunit do
 
   @shortdoc "Run the project's EUnit test suite"
 
-  def run(_args) do
-    Mix.env :test
+  def run(args) do
+    # use a different env from :test because compilation options differ
+    Mix.env :etest
 
     Mix.Task.run "loadpaths", []
 
-    # FIXME: the "compile" task really has to allow overriding options
-    # programmatically without using env vars of project config
-    System.put_env "ERL_COMPILER_OPTIONS", "{d,'TEST'}"
-    Mix.Task.run "compile", []
+    paths =
+      ["etest"|Mix.Project.config[:erlc_paths]]
+      |> Enum.flat_map(&["--erlc-paths", &1])
+    compile_opts = [{:d,:TEST}|Mix.Project.config[:erlc_options]]
+    System.put_env "ERL_COMPILER_OPTIONS", :io_lib.format("~p", [compile_opts]) |> List.to_string
+
+    Mix.Task.run "compile", paths ++ args
 
     :eunit.test {:application, Mix.Project.config[:app]}
   end

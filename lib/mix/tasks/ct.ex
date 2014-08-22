@@ -3,21 +3,19 @@ defmodule Mix.Tasks.Ct do
 
   @shortdoc "Run the project's Common Test suite"
 
-  def run(_args) do
+  def run(args) do
     Mix.env :test
 
     Mix.Task.run "loadpaths", []
-    Mix.Task.run "compile", []
 
-    test_dir = Mix.Project.compile_path |> String.to_char_list
-    for file <- Path.wildcard("test/*_SUITE.erl") do
-      # FIXME: we can't use compile.erlang here because it reads source paths
-      # from the project config
-      :compile.file(String.to_char_list(file), [outdir: test_dir])
-    end
+    paths =
+      ["ctest"|Mix.Project.config[:erlc_paths]]
+      |> Enum.flat_map(&["--erlc-paths", &1])
+    Mix.Task.run "compile", paths ++ args
 
-    File.mkdir_p!("test/ct")
+    File.mkdir_p!("ctest/logs")
 
-    :ct.run_test [{:dir,test_dir}, {:logdir, 'test/ct'}, {:auto_compile,false}]
+    ebin_dir = Mix.Project.compile_path |> String.to_char_list
+    :ct.run_test [{:dir,ebin_dir}, {:logdir, 'ctest/logs'}, {:auto_compile,false}]
   end
 end
