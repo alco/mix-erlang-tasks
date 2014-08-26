@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Newer do
   @moduledoc """
   ## Usage
 
-      mix newer -t <template> <name>
+      mix newer -t <template> [options] <name>
 
   The template can be one of:
 
@@ -14,31 +14,80 @@ defmodule Mix.Tasks.Newer do
     * URL to a repository
     * URL to a zip or tar archive that will be fetched and unpacked
 
+  Any parameters used or defined in the template can be overriden on the
+  command line. For example, the default parameter `MODULE_NAME` and
+  user-defined parameter `some_name` can be overriden as follows:
+
+      mix newer -t <template> --module-name Othername --some-name myname
+
   """
 
   def run(args) do
     options = [
-      strict: [template: :string],
+      switches: [template: :string],
       aliases: [t: :template],
     ]
-    {name, template} = case OptionParser.parse(args, options) do
+    {name, template, overrides} = case OptionParser.parse(args, options) do
       {opts, [name], []} ->
-        {name, Keyword.get(opts, :template, ":default")}
-      {_, [_, arg | _], []} ->
+        {name, Keyword.get(opts, :template, ":default"), Keyword.delete(opts, :template)}
+      {_, [_, arg | _], _} ->
         Mix.raise "Extraneous argument: #{arg}"
-      {_, _, [{invalid, _}|_]} ->
-        Mix.raise "Undefined option: #{invalid}"
     end
 
-    instantiate_template(name, fetch_template(template, name))
+    instantiate_template(name, fetch_template(template, name), parse_overrides(overrides))
   end
 
-  defp instantiate_template(name, path) do
+  defmacro param(name, value) do
+    quote do
+      var!(user_config) = Keyword.put(var!(user_config), unquote(name), unquote(value))
+    end
+  end
+
+  defp fetch_template(template, dest) do
+    cond do
+      String.ends_with?(template, ".git") or File.dir?(Path.join([template, ".git"])) ->
+        Mix.SCM.Git.checkout(git: template, dest: dest)
+
+      String.starts_with?(template, "http") ->
+        id = :crypto.rand_bytes(4) |> Base.encode16
+        unique_name = "mix_newer_template_#{id}"
+        tmp_path = Path.join(System.tmp_dir!, unique_name)
+
+        # FIXME
+        :httpc.download_file(template, tmp_path)
+
+      File.dir?(template) ->
+        File.cp_r!(template, dest)
+    end
+    dest
+  end
+
+  @builtin_params [
+      :APP_NAME,
+      :MODULE_NAME,
+      :MIX_VERSION,
+      :MIX_VERSION_SHORT,
+  ]
+
+  defp parse_overrides(overrides) do
+    Enum.map(overrides, fn {opt_name, value} ->
+      param_name =
+        opt_name |> Atom.to_string |> String.upcase |> String.to_atom
+
+      if not Enum.member?(@builtin_params, param_name) do
+        param_name = opt_name
+      end
+      {param_name, value}
+    end)
+    |> Enum.into(%{})
+  end
+
+  defp instantiate_template(name, path, overrides) do
     config = %{
-      APP_NAME: name,
-      MODULE_NAME: Mix.Utils.camelize(name),
-      MIX_VERSION: System.version,
-      MIX_VERSION_SHORT: Path.rootname(System.version),
+      APP_NAME: Dict.get(overrides, :APP_NAME, name),
+      MODULE_NAME: Dict.get(overrides, :MODULE_NAME, Mix.Utils.camelize(name)),
+      MIX_VERSION: Dict.get(overrides, :MIX_VERSION, System.version),
+      MIX_VERSION_SHORT: Dict.get(overrides, :MIX_VERSION_SHORT, Path.rootname(System.version)),
     }
 
     File.cd!(path)
@@ -51,20 +100,18 @@ defmodule Mix.Tasks.Newer do
     {_, bindings} =
       Code.string_to_quoted!(init_code)
       |> Code.eval_quoted([config: config, user_config: []], env)
-    user_config = Map.merge(config, Keyword.fetch!(bindings, :user_config) |> Enum.into(%{}))
+    user_config =
+      config
+      |> Map.merge(Keyword.fetch!(bindings, :user_config) |> Enum.into(%{}))
+      |> apply_overrides(overrides)
 
     postprocess_file_hierarchy(user_config)
   end
 
-  defmacro param(name, value) do
-    quote do
-      var!(user_config) = Keyword.put(var!(user_config), unquote(name), unquote(value))
-    end
-  end
-
-  defp fetch_template(template, dest) do
-    Mix.SCM.Git.checkout(git: template, dest: dest)
-    dest
+  defp apply_overrides(config, overrides) do
+    Enum.map(config, fn {k,v} ->
+      {k, Dict.get(overrides, k, v)}
+    end) |> Enum.into(%{})
   end
 
   defp postprocess_file_hierarchy(user_config) do
