@@ -41,24 +41,24 @@ defmodule Mix.Tasks.Newer do
       MIX_VERSION_SHORT: Path.rootname(System.version),
     }
 
-    init_code = File.read!(Path.join([path, "init.exs"]))
+    File.cd!(path)
+
+    init_code = File.read!("init_template.exs")
     env =
       __ENV__
-      |> Map.update!(:functions, fn functions ->
-        [{Mix.Tasks.Newer, [config: 1]}|functions]
-      end)
+      |> Map.update!(:functions, &[{__MODULE__, [param: 2]}|&1])
       |> Map.put(:vars, [])
     {_, bindings} =
       Code.string_to_quoted!(init_code)
       |> Code.eval_quoted([config: config, user_config: []], env)
     user_config = Map.merge(config, Keyword.fetch!(bindings, :user_config) |> Enum.into(%{}))
 
-    postprocess_file_hierarchy(path, user_config)
+    postprocess_file_hierarchy(user_config)
   end
 
-  defmacro config(list) do
+  defmacro param(name, value) do
     quote do
-      var!(user_config) = Keyword.merge(var!(user_config), unquote(list))
+      var!(user_config) = Keyword.put(var!(user_config), unquote(name), unquote(value))
     end
   end
 
@@ -67,48 +67,25 @@ defmodule Mix.Tasks.Newer do
     dest
   end
 
-  defp postprocess_file_hierarchy(path, user_config) do
-    {files, _directories} = get_files_and_directories(path)
+  defp postprocess_file_hierarchy(user_config) do
+    {files, _directories} = get_files_and_directories()
 
     new_files =
       files
       |> reject_auxilary_files
-      |> rename_templates
       |> substitute_variables(user_config)
 
     substitute_variables_in_files(new_files, user_config)
 
-    cleanup(path)
+    cleanup()
   end
 
-  defp get_files_and_directories(path) do
-    Path.wildcard(path <> "/**") |> Enum.partition(&File.regular?/1)
+  defp get_files_and_directories() do
+    Path.wildcard("**") |> Enum.partition(&File.regular?/1)
   end
 
   defp reject_auxilary_files(paths) do
-    # FIXME
-    paths
-    |> Enum.reject(&String.ends_with?(&1, "README.md"))
-    |> Enum.reject(&String.ends_with?(&1, "init.exs"))
-  end
-
-  defp rename_templates(paths) do
-    {templates, rest} = Enum.partition(paths, fn path ->
-      path
-      |> Path.basename
-      |> Path.rootname
-      |> String.ends_with?("_template")
-    end)
-
-    templates =
-      templates
-      |> Enum.map(fn path ->
-        new_path = String.replace(path, "_template", "")  # FIXME
-        :ok = :file.rename(path, new_path)
-        new_path
-      end)
-
-    templates ++ rest
+    paths -- ["init_template.exs"]
   end
 
   defp substitute_variables(paths, config) do
@@ -136,8 +113,8 @@ defmodule Mix.Tasks.Newer do
     end)
   end
 
-  defp cleanup(path) do
-    File.rm_rf!(Path.join([path, ".git"]))
-    File.rm_rf!(Path.join([path, "init.exs"]))
+  defp cleanup() do
+    [".git", "init_template.exs"]
+    |> Enum.each(&File.rm_rf!/1)
   end
 end
