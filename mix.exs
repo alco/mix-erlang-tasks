@@ -5,7 +5,7 @@ defmodule MixErlangTasks.Mixfile do
     [
       app: :"mix-erlang-tasks",
       version: "0.0.1",
-      elixir: "~> 0.14",
+      elixir: "~> 1.0",
     ]
   end
 end
