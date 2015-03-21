@@ -3,7 +3,7 @@ defmodule MixErlangTasks.Mixfile do
 
   def project do
     [
-      app: :"mix-erlang-tasks",
+      app: :mix_erlang_tasks,
       version: "0.1.0",
       elixir: "~> 1.0",
       description: description,

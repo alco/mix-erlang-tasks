@@ -26,13 +26,13 @@ Choose how you'd like to install the custom tasks:
      This will make the custom tasks available to `mix` regardless of where it is invoked, just like
      the builtin tasks are.
 
-  2. Add `mix-erlang-tasks` as a dependency to your project:
+  2. Add `mix_erlang_tasks` as a dependency to your project:
 
      ```elixir
      # in your mix.exs
 
      defp deps do
-       [{:"mix-erlang-tasks", "0.1"}]
+       [{:mix_erlang_tasks, "0.1"}]
      end
      ```
 
