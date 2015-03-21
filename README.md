@@ -20,7 +20,7 @@ Choose how you'd like to install the custom tasks:
   1. As an archive:
 
      ```
-     mix archive.install https://github.com/alco/mix-erlang-tasks/releases/download/v0.1.0/mix-erlang-tasks-0.1.0.ez
+     mix archive.install https://github.com/alco/mix-erlang-tasks/releases/download/v0.1.0/mix_erlang_tasks-0.1.0.ez
      ```
 
      This will make the custom tasks available to `mix` regardless of where it is invoked, just like
