@@ -10,8 +10,8 @@ Hex to be able to push and fetch packages from https://hex.pm and it also suppor
 few good examples of the latter would be [dialyze](http://github.com/fishcakez/dialyze) and
 [release](https://github.com/bitwalker/exrm).
 
-You can get Mix by installing [Elixir](elixir-lang.org) or by downloading a standalone `mix` escript
-from https://hex.pm (see section `Using with Erlang`) and putting it in your `PATH`.
+You can get Mix by installing [Elixir](http://elixir-lang.org) or by downloading a standalone `mix`
+escript from https://hex.pm (see section `Using with Erlang`) and putting it in your `PATH`.
 
 Once installed, create a new project for your Erlang application.
 
@@ -19,7 +19,9 @@ Choose how you'd like to install the custom tasks:
 
   1. As an archive:
 
-         mix archive.install https://github.com/alco/mix-erlang-tasks/releases/download/alpha1/mix-erlang-tasks-0.0.1.ez
+     ```
+     mix archive.install https://github.com/alco/mix-erlang-tasks/releases/download/alpha1/mix-erlang-tasks-0.0.1.ez
+     ```
 
      This will make the custom tasks available to `mix` regardless of where it is invoked, just like
      the builtin tasks are.
@@ -38,15 +40,11 @@ Choose how you'd like to install the custom tasks:
 
 Once installed, you'll have the following tasks available:
 
-    $ mix deps.get       # fetch dependencies
-
-    $ mix compile        # compile everything
-
-    $ mix eunit          # run EUnit tests
-
-    $ mix ct             # run Common Test suites
-
-    $ mix edoc           # generate HTML documentation from the source
+```sh
+$ mix eunit          # run EUnit tests
+$ mix ct             # run Common Test suites
+$ mix edoc           # generate HTML documentation from the source
+```
 
 See example project at https://github.com/alco/erlang-mix-project.
 
