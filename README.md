@@ -32,7 +32,7 @@ Choose how you'd like to install the custom tasks:
      # in your mix.exs
 
      defp deps do
-       [{:mix_erlang_tasks, "0.1"}]
+       [{:mix_erlang_tasks, "0.1.0"}]
      end
      ```
 
