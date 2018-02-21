@@ -6,8 +6,8 @@ defmodule MixErlangTasks.Mixfile do
       app: :mix_erlang_tasks,
       version: "0.1.0",
       elixir: "~> 1.0",
-      description: description,
-      package: package,
+      description: description(),
+      package: package(),
     ]
   end
 
