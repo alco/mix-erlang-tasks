@@ -27,10 +27,11 @@ defmodule Mix.Tasks.Ct do
     logdir = Keyword.get(opts, :log_dir, "ctest/logs")
     File.mkdir_p!(logdir)
 
-    :ct.run_test [
-      {:dir, String.to_char_list(ebin_dir)},
-      {:logdir, String.to_char_list(logdir)},
+    {_ok, failed, {_userSkipped, autoSkipped}} = :ct.run_test [
+      {:dir, String.to_charlist(ebin_dir)},
+      {:logdir, String.to_charlist(logdir)},
       {:auto_compile, false}
     ]
+    :erlang.halt(if (failed+autoSkipped) == 0, do: 0, else: 1)
   end
 end
