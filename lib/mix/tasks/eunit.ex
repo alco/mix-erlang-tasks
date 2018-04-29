@@ -28,8 +28,9 @@ defmodule Mix.Tasks.Eunit do
     ebin_test = Path.join([Mix.Project.app_path, "test_beams"])
     MixErlangTasks.Util.compile_files(Path.wildcard("etest/**/*_tests.erl"), ebin_test)
 
+    test_beams_folder = String.to_charlist(ebin_test)
     options = if Keyword.get(opts, :verbose, false), do: [:verbose], else: []
-    :eunit.test {:application, Mix.Project.config[:app]}, options
+    :eunit.test test_beams_folder, options
   end
 
   defp format_compile_opts(opts) do

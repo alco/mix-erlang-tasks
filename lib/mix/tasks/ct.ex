@@ -28,8 +28,8 @@ defmodule Mix.Tasks.Ct do
     File.mkdir_p!(logdir)
 
     :ct.run_test [
-      {:dir, String.to_char_list(ebin_dir)},
-      {:logdir, String.to_char_list(logdir)},
+      {:dir, String.to_charlist(ebin_dir)},
+      {:logdir, String.to_charlist(logdir)},
       {:auto_compile, false}
     ]
   end
