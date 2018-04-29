@@ -10,8 +10,8 @@ defmodule MixErlangTasks.Util do
     File.mkdir_p!(dir)
 
     status = Enum.reduce(files, :ok, fn path, status ->
-      case :compile.file(String.to_char_list(path),
-        [{:outdir, String.to_char_list(dir)}, :report]) do
+      case :compile.file(String.to_charlist(path),
+        [{:outdir, String.to_charlist(dir)}, :report]) do
         {:ok, _} -> IO.puts "Compiled #{path}"; status
         :error -> :error
       end
