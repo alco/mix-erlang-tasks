@@ -22,7 +22,7 @@ defmodule Mix.Tasks.Ct do
     # This is run independently, so that the test modules don't end up in the
     # .app file
     ebin_dir = Path.join([Mix.Project.app_path, "test_beams"])
-    MixErlangTasks.Util.compile_files(Path.wildcard("ctest/**/*_SUITE.erl"), ebin_dir)
+    MixErlangTasks.Util.compile_files(Path.wildcard("ctest/**/*.erl"), ebin_dir)
 
     logdir = Keyword.get(opts, :log_dir, "ctest/logs")
     File.mkdir_p!(logdir)
